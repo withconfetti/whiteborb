@@ -45,28 +45,36 @@ io.on('connection', (socket) => {
   });
 
   socket.on('join-room', async (data) => {
-    await socket.join(data.roomName);
-    const client = await pool.connect();
-    const res = await client.query(`
-      SELECT boards.state 
-      FROM boards 
-      WHERE boards.name = '${data.roomName}';
-    `);
-    client.release();
-    if (res.rows.length > 0 && ("state" in res.rows[0])) {
-      io.to(data.roomName).emit('send-board-data', { canvasData: res.rows[0].state });
-    }
+    try {
+      await socket.join(data.roomName);
+      const client = await pool.connect();
+      const res = await client.query(`
+        SELECT boards.state 
+        FROM boards 
+        WHERE boards.name = '${data.roomName}';
+      `);
+      client.release();
+      if (res.rows.length > 0 && ("state" in res.rows[0])) {
+        io.to(data.roomName).emit('send-board-data', { canvasData: res.rows[0].state });
+      }
+  } catch (e) {
+    console.error(e)
+  }
   });
 
   socket.on('send-board-data', async (data) => {
-    socket.broadcast.to(data.roomName).emit('send-board-data', data);
-    const client = await pool.connect();
-    await client.query(`
-      INSERT INTO boards(state, name, last_updated) 
-      VALUES($1, $2, $3) 
-      ON CONFLICT (name) DO UPDATE 
-      SET state = EXCLUDED.state, last_updated = EXCLUDED.last_updated;
-    `, [data.canvasData, data.roomName, new Date()])
-    client.release();
+    try {
+      socket.broadcast.to(data.roomName).emit('send-board-data', data);
+      const client = await pool.connect();
+      await client.query(`
+        INSERT INTO boards(state, name, last_updated) 
+        VALUES($1, $2, $3) 
+        ON CONFLICT (name) DO UPDATE 
+        SET state = EXCLUDED.state, last_updated = EXCLUDED.last_updated;
+      `, [data.canvasData, data.roomName, new Date()])
+      client.release();
+    } catch (e) {
+      console.error(e)
+    }
   });
 });
