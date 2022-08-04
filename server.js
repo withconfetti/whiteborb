@@ -24,7 +24,7 @@ server.listen(port);
 
 // Database connection
 let pool;
-if (process.env.PORT) {
+if (process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },

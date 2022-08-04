@@ -13,7 +13,11 @@ import Whiteborb from './components/Whiteborb.vue';
     whiteborb: Whiteborb,
   },
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+  private created(){
+        document.title = "Confetti Whiteboard"
+  }
+}
 </script>
 
 <style lang="less">
