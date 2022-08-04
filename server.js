@@ -63,6 +63,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send-board-data', async (data) => {
+    console.log(data)
     try {
       socket.broadcast.to(data.roomName).emit('send-board-data', data);
       const client = await pool.connect();
